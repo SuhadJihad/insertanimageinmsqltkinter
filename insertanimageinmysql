@@ -1,0 +1,56 @@
+import mysql.connector
+import tkinter as tk
+from tkinter import filedialog
+from PIL import Image, ImageTk
+window = tk.Tk()
+window.title('حفظ معلومات الطلاب')
+window.option_add('*Font', 'Times 15')
+def upload_image():
+   global filename,img
+   f_types =[('Png files','*.png'),('Jpg Files', '*.jpg')]
+   filename = filedialog.askopenfilename(filetypes=f_types)
+   if(filename):
+    img = Image.open(filename)
+    img=img.resize((100, 100))
+    img = ImageTk.PhotoImage(img)
+    label = tk.Label(master=frame, image=img,width=100,height=100)
+    label.grid(row=0, column=3, padx=5, pady=5)
+def submit():
+   fb=open(filename,'rb') # filename from upload_file()
+   fb=fb.read() 
+   try:
+    mydb = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="root",
+    database="mydatabase"
+    )
+    mycursor = mydb.cursor()
+    sql = "INSERT INTO customers (name, IMAGE) VALUES (%s, %s)"
+    val = [(edit.get(), fb)]
+    mycursor.executemany(sql, val)
+    mydb.commit()
+    print(mycursor.rowcount, "record inserted successfuly.")
+   except mysql.connector.Error as error:
+    print("Failed to insert into customer table {}".format(error))
+
+   finally:
+     if mydb.is_connected():
+        mycursor.close()
+        mydb.close()
+        print("MySQL connection is closed")
+    
+frame = tk.Frame(master=window,relief=tk.SUNKEN,borderwidth=3)
+labeln = tk.Label(master=frame,text='Student Name')
+labeln.grid(row=0, column=0, padx=5, pady=5)
+frame.grid(row=0, column=0, padx=5, pady=5)
+button=tk.Button(master=frame,text='Upload image', command=upload_image)
+button.grid(row=0, column=2, padx=5, pady=5)
+edit=tk.Entry(master=frame,width=20)
+edit.grid(row=0, column=1, padx=5, pady=5)
+buttonl=tk.Button(master=frame,text='Submit', command=submit)
+buttonl.grid(row=1, column=1, padx=5, pady=5)
+window['bg']='#F5C800'
+#window.geometry("400x100")
+window.iconbitmap('D:\\Python\\student.ico')
+window.mainloop()
